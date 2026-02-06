@@ -1,0 +1,23 @@
+# Credentials and Configuration
+public_html/config.php
+.env
+
+# Dependencies
+vendor/
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary and Logs
+logs/
+*.log
+tmp/
+temp/

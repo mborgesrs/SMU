@@ -1,0 +1,64 @@
+<?php
+/**
+ * Application Configuration Template
+ * SaaS Maternity Assistance Control System
+ * 
+ * Instructions:
+ * 1. Copy this file to config.php
+ * 2. Fill in your database credentials and API keys
+ */
+
+// Database Configuration
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'smu_db');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+
+// Asaas Configuration
+define('ASAAS_API_KEY', 'YOUR_ASAAS_API_KEY_HERE');
+define('ASAAS_ENVIRONMENT', 'sandbox'); // Set to 'production' for live
+
+// ZapSign Configuration
+define('ZAPSIGN_API_TOKEN', 'YOUR_ZAPSIGN_API_TOKEN_HERE');
+define('ZAPSIGN_ENVIRONMENT', 'sandbox'); // Set to 'production' for live
+
+// Application Settings
+define('APP_NAME', 'SMU - Sistema de Maternidade');
+
+// Base URL detection
+$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$phpSelf = $_SERVER['PHP_SELF'] ?? '';
+$depth = 1; 
+
+// ... (Rest of the base URL detection logic from original config.php)
+$pathParts = explode('/', trim($phpSelf, '/'));
+$viewsIndex = array_search('views', $pathParts);
+$apiIndex = array_search('api', $pathParts);
+
+if ($viewsIndex !== false) {
+    $depth = count($pathParts) - $viewsIndex;
+} else if ($apiIndex !== false) {
+    $depth = count($pathParts) - $apiIndex;
+}
+
+$baseUrl = $protocol . "://" . $host . rtrim(dirname($phpSelf, $depth), '/\\') . '/';
+define('APP_URL', $baseUrl);
+
+// Session Configuration
+define('SESSION_LIFETIME', 3600); // 1 hour
+
+// Timezone
+date_default_timezone_set('America/Sao_Paulo');
+
+// Error Reporting (set to 0 in production)
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start session
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Global Helpers
+require_once __DIR__ . '/helpers.php';
