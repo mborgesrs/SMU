@@ -2,6 +2,9 @@
 $config = [
     'title' => 'Contas Financeiras',
     'model' => 'ContaModel',
+    'rowClass' => function($item) {
+        return ($item['tipo'] ?? '') === 'Sintetica' ? 'font-bold bg-gray-50' : '';
+    },
     'columns' => [
         ['label' => 'Código', 'field' => 'codigo'],
         ['label' => 'Descrição', 'field' => 'descricao'],

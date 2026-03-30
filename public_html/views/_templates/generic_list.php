@@ -48,7 +48,8 @@ $items = $model->getAll();
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
                 <?php foreach ($items as $item): ?>
-                    <tr class="hover:bg-gray-50">
+                    <?php $rowClass = isset($config['rowClass']) && is_callable($config['rowClass']) ? $config['rowClass']($item) : ''; ?>
+                    <tr class="hover:bg-gray-50 <?php echo $rowClass; ?>">
                         <?php foreach ($config['columns'] as $col): ?>
                             <td class="px-6 py-4 text-sm text-gray-900">
                                 <?php 
