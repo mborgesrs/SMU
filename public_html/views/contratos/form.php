@@ -5,6 +5,7 @@ require_once __DIR__ . '/../../models/ObjetoModel.php';
 require_once __DIR__ . '/../../models/ProductModel.php';
 require_once __DIR__ . '/../../models/ContaModel.php';
 require_once __DIR__ . '/../../models/PortadorModel.php';
+require_once __DIR__ . '/../../models/FinanceiroModel.php';
 
 $model = new ContratoModel();
 $clienteModel = new ClienteModel();
@@ -12,12 +13,15 @@ $objetoModel = new ObjetoModel();
 $productModel = new ProductModel();
 $contaModel = new ContaModel();
 $portadorModel = new PortadorModel();
+$financeiroModel = new FinanceiroModel();
 
 $contrato = null;
 $isEdit = false;
+$financeirosVinculados = [];
 
 if (isset($_GET['id'])) {
     $contrato = $model->getById($_GET['id']);
+    $financeirosVinculados = $financeiroModel->getAll(['nf_contrato' => $_GET['id']]);
     $isEdit = true;
 }
 
@@ -236,6 +240,66 @@ require_once __DIR__ . '/../layout/header.php';
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500"><?php echo htmlspecialchars($contrato['observacoes'] ?? ''); ?></textarea>
         </div>
 
+        <?php if ($isEdit): ?>
+        <div class="border-t pt-4">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">Lançamentos Financeiros Vinculados</h3>
+            
+            <?php if (empty($financeirosVinculados)): ?>
+                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        Ainda não foi gerado nenhum lançamento financeiro para este contrato.
+                    </div>
+                    <a href="gerar_financeiro.php?id=<?php echo $_GET['id']; ?>" 
+                       onclick="return confirmAction(event, 'Deseja gerar o financeiro do contrato?', 'warning', 'Sim, gerar!', '#10b981')"
+                       class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm text-sm font-bold">
+                        <i class="fas fa-hand-holding-usd mr-2"></i>Gerar Financeiro
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3">ID</th>
+                                <th class="px-4 py-3">Vencimento</th>
+                                <th class="px-4 py-3">Tipo Pgto</th>
+                                <th class="px-4 py-3">Valor</th>
+                                <th class="px-4 py-3">Situação</th>
+                                <th class="px-4 py-3 text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($financeirosVinculados as $fin): ?>
+                            <tr class="border-b hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 font-medium text-gray-900">#<?php echo $fin['id']; ?></td>
+                                <td class="px-4 py-3">
+                                    <?php echo $fin['dt_vencimento'] ? date('d/m/Y', strtotime($fin['dt_vencimento'])) : '-'; ?>
+                                </td>
+                                <td class="px-4 py-3"><?php echo htmlspecialchars($fin['tipo_pagamento'] ?? '-'); ?></td>
+                                <td class="px-4 py-3 font-bold text-gray-700">R$ <?php echo number_format($fin['valor'], 2, ',', '.'); ?></td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2 py-1 text-xs font-bold rounded <?php 
+                                        echo $fin['situacao'] === 'Liquidado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'; 
+                                    ?>">
+                                        <?php echo htmlspecialchars($fin['situacao']); ?>
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <a href="../financeiro/form.php?id=<?php echo $fin['id']; ?>&origem_contrato=<?php echo $_GET['id']; ?>" 
+                                       class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded transition text-xs font-semibold">
+                                        <i class="fas fa-edit mr-1"></i>Alterar
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
         <!-- Buttons -->
         <div class="flex gap-4 pt-4">
             <button type="submit" 
@@ -245,12 +309,6 @@ require_once __DIR__ . '/../layout/header.php';
             </button>
 
             <?php if ($isEdit): ?>
-                <a href="gerar_financeiro.php?id=<?php echo $_GET['id']; ?>" 
-                   onclick="return confirmAction(event, 'Deseja gerar o financeiro do contrato?', 'warning', 'Sim, gerar!', '#10b981')"
-                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg mr-2">
-                    <i class="fas fa-hand-holding-usd mr-2"></i>Gerar Financeiro
-                </a>
-
                 <a href="../../pdf/contrato_pdf.php?id=<?php echo $_GET['id']; ?>" target="_blank" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition shadow-lg">
                     <i class="fas fa-file-pdf mr-2"></i>Imprimir Contrato
                 </a>

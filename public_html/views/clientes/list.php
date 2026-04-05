@@ -8,8 +8,12 @@ $controller = new ClienteController();
 
 // Handle delete
 if (isset($_GET['delete'])) {
-    $controller->destroy($_GET['delete']);
-    header('Location: list.php?success=deleted');
+    try {
+        $controller->destroy($_GET['delete']);
+        header('Location: list.php?success=deleted');
+    } catch (Exception $e) {
+        header('Location: list.php?error=' . urlencode($e->getMessage()));
+    }
     exit;
 }
 
@@ -49,6 +53,13 @@ $clientes = $controller->index($search);
             if ($_GET['success'] === 'updated') echo 'Cliente atualizado com sucesso!';
             if ($_GET['success'] === 'deleted') echo 'Cliente excluído com sucesso!';
             ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['error'])): ?>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <?php echo htmlspecialchars($_GET['error']); ?>
         </div>
     <?php endif; ?>
 

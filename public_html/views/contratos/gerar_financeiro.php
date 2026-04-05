@@ -19,6 +19,13 @@ if (!$contrato) {
     exit;
 }
 
+// Verify if already generated
+$existentes = $financeiroModel->getAll(['nf_contrato' => $contrato['id']]);
+if (!empty($existentes)) {
+    header('Location: form.php?id=' . $contrato['id'] . '&info=already_exists');
+    exit;
+}
+
 // Prepare data for Financeiro
 $dataLancamento = date('Y-m-d');
 $dataVencimento = date('Y-m-d', strtotime('+45 days'));
@@ -41,14 +48,15 @@ $dataFinanceiro = [
     'saldo' => $contrato['valor_total'],
     'situacao' => 'Aberto',
     'dt_vencimento' => $dataVencimento,
-    'id_origem' => $contrato['id'] // Linking to contract (optional but good)
+    'id_origem' => $contrato['id'], // Linking to contract (optional but good)
+    'nf_contrato' => $contrato['id']
 ];
 
 if ($financeiroModel->create($dataFinanceiro)) {
     // Optionally update contract status or mark as "financial generated"
     // $contratoModel->updateStatus($contrato['id'], 'financeiro_gerado');
-    header('Location: ../financeiro/list.php?success=created_from_contract');
+    header('Location: form.php?id=' . $contrato['id'] . '&success=financeiro_gerado');
 } else {
-    header('Location: list.php?id=' . $contrato['id'] . '&error=finance_failed');
+    header('Location: form.php?id=' . $contrato['id'] . '&error=finance_failed');
 }
 exit;

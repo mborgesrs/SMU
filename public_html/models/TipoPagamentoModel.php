@@ -43,7 +43,16 @@ class TipoPagamentoModel {
         ]);
     }
 
+    public function checkUsage($id) {
+        $stmtFin = $this->db->prepare("SELECT COUNT(*) FROM financeiro WHERE id_tipopgto = ? AND company_id = ?");
+        $stmtFin->execute([$id, $this->company_id]);
+        return $stmtFin->fetchColumn() > 0;
+    }
+
     public function delete($id) {
+        if ($this->checkUsage($id)) {
+            throw new Exception("Cadastro não pode ser excluído, existem movimentações para esse Id.");
+        }
         $stmt = $this->db->prepare("DELETE FROM tipos_pagamento WHERE id = ? AND company_id = ?");
         return $stmt->execute([$id, $this->company_id]);
     }

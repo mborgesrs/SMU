@@ -41,7 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'saldo' => 0, // Movements are always liquidated
         'situacao' => 'Liquidado',
         'dt_vencimento' => $origem['dt_vencimento'],
-        'id_origem' => $origem['id']
+        'id_origem' => $origem['id'],
+        'nf_contrato' => $origem['nf_contrato'] ?? null
     ];
     
     $model->create($dadosLiquidação);

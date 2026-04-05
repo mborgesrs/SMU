@@ -19,14 +19,24 @@ if (isset($_GET['id'])) {
     $isEdit = true;
 }
 
+$origem_contrato = $_GET['origem_contrato'] ?? $_POST['origem_contrato'] ?? null;
+
 // Handle form submission BEFORE including header
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($isEdit) {
         $model->update($_GET['id'], $_POST);
-        header('Location: list.php?success=updated');
+        if ($origem_contrato) {
+            header('Location: ../contratos/form.php?id=' . $origem_contrato . '&success=financeiro_updated');
+        } else {
+            header('Location: list.php?success=updated');
+        }
     } else {
         $model->create($_POST);
-        header('Location: list.php?success=created');
+        if ($origem_contrato) {
+            header('Location: ../contratos/form.php?id=' . $origem_contrato . '&success=financeiro_created');
+        } else {
+            header('Location: list.php?success=created');
+        }
     }
     exit;
 }
@@ -44,20 +54,29 @@ require_once __DIR__ . '/../layout/header.php';
     <h2 class="text-3xl font-bold text-gray-800 mb-6"><?php echo $isEdit ? 'Editar' : 'Novo'; ?> Lançamento Financeiro</h2>
 
     <form method="POST" class="bg-white rounded-lg shadow-md p-6 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+        <?php if ($origem_contrato): ?>
+            <input type="hidden" name="origem_contrato" value="<?php echo htmlspecialchars($origem_contrato); ?>">
+        <?php endif; ?>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Data Lançamento *</label>
                 <input type="date" name="data" required value="<?php echo htmlspecialchars($item['data'] ?? date('Y-m-d')); ?>"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
             </div>
 
-            <div>
+            <div class="md:col-span-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Data Vencimento</label>
                 <input type="date" name="dt_vencimento" value="<?php echo htmlspecialchars($item['dt_vencimento'] ?? ''); ?>"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
             </div>
 
-            <div>
+            <div class="md:col-span-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">NF/Contrato</label>
+                <input type="text" name="nf_contrato" value="<?php echo htmlspecialchars($item['nf_contrato'] ?? ''); ?>"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+            </div>
+
+            <div class="md:col-span-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Tipo *</label>
                 <select name="tipo" id="tipo_select" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
                     <option value="">Selecione...</option>
@@ -75,7 +94,7 @@ require_once __DIR__ . '/../layout/header.php';
                 </select>
             </div>
 
-            <div>
+            <div class="md:col-span-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Situação</label>
                 <input type="text" id="situacao_input" readonly value="<?php echo htmlspecialchars($item['situacao'] ?? 'Aberto'); ?>"
                     class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium">
@@ -94,19 +113,23 @@ require_once __DIR__ . '/../layout/header.php';
             });
             </script>
 
-            <div>
+            <div class="md:col-span-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Valor Total *</label>
+                <?php $isLinked = !empty($item['nf_contrato']) || !empty($item['id_origem']); ?>
                 <input type="number" name="valor" step="0.01" required value="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+                    <?php echo $isLinked ? 'readonly class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium cursor-not-allowed"' : 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500"'; ?>>
+                <?php if ($isLinked): ?>
+                    <p class="text-xs text-amber-600 mt-1"><i class="fas fa-lock mr-1"></i>Bloqueado (Vinculado a Contrato)</p>
+                <?php endif; ?>
             </div>
 
-            <div>
+            <div class="md:col-span-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Saldo Restante</label>
                 <input type="text" readonly value="R$ <?php echo number_format($item['saldo'] ?? ($item['valor'] ?? 0), 2, ',', '.'); ?>"
                     class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-blue-600 font-bold">
             </div>
 
-            <div class="md:col-span-2">
+            <div class="md:col-span-12">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Cliente/Fornecedor *</label>
                     <button type="button" onclick="openQuickCreate('../clientes/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Cliente">
@@ -150,7 +173,7 @@ require_once __DIR__ . '/../layout/header.php';
                 </script>
             </div>
 
-            <div>
+            <div class="md:col-span-4">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Portador</label>
                     <button type="button" onclick="openQuickCreate('../portadores/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Portador">
@@ -167,7 +190,7 @@ require_once __DIR__ . '/../layout/header.php';
                 </select>
             </div>
 
-            <div>
+            <div class="md:col-span-4">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Conta</label>
                     <button type="button" onclick="openQuickCreate('../contas/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Nova Conta">
@@ -184,7 +207,7 @@ require_once __DIR__ . '/../layout/header.php';
                 </select>
             </div>
 
-            <div>
+            <div class="md:col-span-4">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700">Tipo de Pagamento</label>
                     <button type="button" onclick="openQuickCreate('../tipos_pagamento/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Tipo de PGTO">
@@ -222,9 +245,15 @@ require_once __DIR__ . '/../layout/header.php';
                 </a>
             <?php endif; ?>
 
-            <a href="list.php" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition flex-1 md:flex-none text-center">
-                <i class="fas fa-arrow-left mr-2"></i>Voltar
-            </a>
+            <?php if ($origem_contrato): ?>
+                <a href="../contratos/form.php?id=<?php echo htmlspecialchars($origem_contrato); ?>" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition flex-1 md:flex-none text-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Voltar ao Contrato
+                </a>
+            <?php else: ?>
+                <a href="list.php" class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition flex-1 md:flex-none text-center">
+                    <i class="fas fa-arrow-left mr-2"></i>Voltar
+                </a>
+            <?php endif; ?>
         </div>
     </form>
 </div>

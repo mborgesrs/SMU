@@ -127,7 +127,22 @@ class ClienteModel {
         ]);
     }
 
+    public function checkUsage($id) {
+        $stmtFin = $this->db->prepare("SELECT COUNT(*) FROM financeiro WHERE id_cliente_forn = ? AND company_id = ?");
+        $stmtFin->execute([$id, $this->company_id]);
+        if ($stmtFin->fetchColumn() > 0) return true;
+
+        $stmtCont = $this->db->prepare("SELECT COUNT(*) FROM contratos WHERE id_contratante = ? AND company_id = ?");
+        $stmtCont->execute([$id, $this->company_id]);
+        if ($stmtCont->fetchColumn() > 0) return true;
+
+        return false;
+    }
+
     public function delete($id) {
+        if ($this->checkUsage($id)) {
+            throw new Exception("Cadastro não pode ser excluído, existem movimentações para esse Id.");
+        }
         $stmt = $this->db->prepare("DELETE FROM clientes WHERE id = ? AND company_id = ?");
         return $stmt->execute([$id, $this->company_id]);
     }

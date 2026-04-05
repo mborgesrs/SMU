@@ -47,6 +47,7 @@ $items = $model->getAll();
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data Lanç.</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimento</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente/Fornecedor</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">NF/Contrato</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Situação</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Valor</th>
@@ -60,6 +61,7 @@ $items = $model->getAll();
                         <td class="px-6 py-4 text-sm text-gray-900"><?php echo date('d/m/Y', strtotime($item['data'])); ?></td>
                         <td class="px-6 py-4 text-sm text-gray-900"><?php echo $item['dt_vencimento'] ? date('d/m/Y', strtotime($item['dt_vencimento'])) : '-'; ?></td>
                         <td class="px-6 py-4 text-sm text-gray-500"><?php echo htmlspecialchars($item['cliente_nome'] ?? '-'); ?></td>
+                        <td class="px-6 py-4 text-sm text-gray-500"><?php echo htmlspecialchars($item['nf_contrato'] ?? '-'); ?></td>
                         <td class="px-6 py-4 text-sm">
                             <?php
                             $type_colors = [

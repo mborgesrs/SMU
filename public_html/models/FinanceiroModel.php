@@ -56,6 +56,11 @@ class FinanceiroModel {
             }
         }
 
+        if (!empty($filters['nf_contrato'])) {
+            $sql .= " AND f.nf_contrato = ?";
+            $params[] = $filters['nf_contrato'];
+        }
+
 
         $sql .= " ORDER BY f.data DESC";
         $stmt = $this->db->prepare($sql);
@@ -80,8 +85,8 @@ class FinanceiroModel {
         // If liquidated, balance must be 0
         $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
 
-        $sql = "INSERT INTO financeiro (company_id, data, id_cliente_forn, observacao, valor, tipo, id_portador, id_conta, id_tipopgto, saldo, situacao, dt_vencimento, id_origem) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO financeiro (company_id, data, id_cliente_forn, observacao, valor, tipo, id_portador, id_conta, id_tipopgto, saldo, situacao, dt_vencimento, id_origem, nf_contrato) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute([
             $this->company_id,
@@ -96,7 +101,8 @@ class FinanceiroModel {
             $saldo,
             $situacao,
             $data['dt_vencimento'] ?? null,
-            $data['id_origem'] ?? null
+            $data['id_origem'] ?? null,
+            $data['nf_contrato'] ?? null
         ]);
 
         if ($result) {
@@ -118,7 +124,7 @@ class FinanceiroModel {
         $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
 
         $sql = "UPDATE financeiro SET data = ?, id_cliente_forn = ?, observacao = ?, valor = ?, 
-                tipo = ?, id_portador = ?, id_conta = ?, id_tipopgto = ?, saldo = ?, situacao = ?, dt_vencimento = ?, id_origem = ? 
+                tipo = ?, id_portador = ?, id_conta = ?, id_tipopgto = ?, saldo = ?, situacao = ?, dt_vencimento = ?, id_origem = ?, nf_contrato = ? 
                 WHERE id = ? AND company_id = ?";
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute([
@@ -134,6 +140,7 @@ class FinanceiroModel {
             $situacao,
             $data['dt_vencimento'] ?? null,
             $data['id_origem'] ?? null,
+            $data['nf_contrato'] ?? null,
             $id,
             $this->company_id
         ]);

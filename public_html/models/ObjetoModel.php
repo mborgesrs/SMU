@@ -43,7 +43,16 @@ class ObjetoModel {
         ]);
     }
 
+    public function checkUsage($id) {
+        $stmtCont = $this->db->prepare("SELECT COUNT(*) FROM contratos WHERE id_objeto = ? AND company_id = ?");
+        $stmtCont->execute([$id, $this->company_id]);
+        return $stmtCont->fetchColumn() > 0;
+    }
+
     public function delete($id) {
+        if ($this->checkUsage($id)) {
+            throw new Exception("Cadastro não pode ser excluído, existem movimentações para esse Id.");
+        }
         $stmt = $this->db->prepare("DELETE FROM objetos WHERE id = ? AND company_id = ?");
         return $stmt->execute([$id, $this->company_id]);
     }
