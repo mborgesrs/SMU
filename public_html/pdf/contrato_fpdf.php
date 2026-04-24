@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/fpdf_v2.php';
-require_once __DIR__ . '/../../models/ClienteModel.php';
-require_once __DIR__ . '/../../models/ContratoModel.php';
+require_once __DIR__ . '/../models/ClienteModel.php';
+require_once __DIR__ . '/../models/ContratoModel.php';
 
 function gerarContratoPDF($contratoId) {
     $clienteModel = new ClienteModel();

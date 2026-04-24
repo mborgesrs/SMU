@@ -29,15 +29,23 @@ try {
     if (!$pdfContent) throw new Exception('Erro ao gerar PDF do contrato');
     $base64Pdf = base64_encode($pdfContent);
 
-    // 2. Criar documento na ZapSign
+    // 2. Criar documento na ZapSign com os signatários
     $docName = "Contrato - " . ($cliente['nome'] ?? 'Cliente');
-    $zapsignDoc = $zapService->createDocument($docName, $base64Pdf);
+    $email = $cliente['email'] ?? 'atendimento@rsmaternidade.com.br'; // Fallback se não houver email
+
+    $signers = [
+        [
+            'name' => $cliente['nome'],
+            'email' => $email,
+            'auth_mode' => 'assinaturaTela'
+        ]
+    ];
+
+    $zapsignDoc = $zapService->createDocument($docName, $base64Pdf, $signers);
     $docToken = $zapsignDoc['token'];
 
-    // 3. Adicionar signatário (Cliente)
-    $email = $cliente['email'] ?? 'atendimento@rsmaternidade.com.br'; // Fallback se não houver email
-    $signer = $zapService->addSigner($docToken, $cliente['nome'], $email);
-    $signUrl = $signer['sign_url'];
+    // 3. Obter URL de assinatura
+    $signUrl = $zapsignDoc['signers'][0]['sign_url'] ?? '';
 
     // 4. Atualizar banco de dados
     $db = getDB();

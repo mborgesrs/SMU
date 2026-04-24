@@ -1,0 +1,5 @@
+<?php
+require 'public_html/db.php';
+$db = getDB();
+$cols = $db->query("SELECT TABLE_NAME, COLUMN_NAME, CONSTRAINT_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE REFERENCED_TABLE_SCHEMA = 'smu'")->fetchAll(PDO::FETCH_ASSOC);
+echo json_encode($cols);

@@ -33,17 +33,24 @@ class ZapSignService {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
         if ($data) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            $jsonData = json_encode($data);
+            if ($jsonData === false) {
+                throw new Exception('JSON Encode Error: ' . json_last_error_msg());
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
         }
 
         $response = curl_exec($ch);
+        $curlError = curl_error($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         $result = json_decode($response, true);
 
-        if ($httpCode >= 400) {
-            $error = $result['detail'] ?? 'ZapSign API Error';
+        if ($httpCode >= 400 || $response === false) {
+            $error = "HTTP $httpCode. ";
+            if ($response === false) $error .= "cURL Error: $curlError. ";
+            $error .= $result['detail'] ?? (is_array($result) ? json_encode($result) : 'Raw: ' . substr($response, 0, 300));
             throw new Exception($error);
         }
 
@@ -53,10 +60,11 @@ class ZapSignService {
     /**
      * Create document via Base64
      */
-    public function createDocument($name, $base64Pdf) {
+    public function createDocument($name, $base64Pdf, $signers = []) {
         return $this->request('POST', '/docs/', [
             'name' => $name,
             'base64_pdf' => $base64Pdf,
+            'signers' => $signers,
             'sandbox' => ($this->environment === 'sandbox')
         ]);
     }

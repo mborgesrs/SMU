@@ -330,6 +330,9 @@ require_once __DIR__ . '/../layout/header.php';
                             <a href="<?php echo $contrato['zapsign_url']; ?>" target="_blank" class="text-xs text-blue-600 underline hover:text-blue-800">
                                 Ver link de assinatura
                             </a>
+                            <button type="button" onclick="verificarZapSign(<?php echo $_GET['id']; ?>)" id="btn-verificar-zapsign" class="ml-3 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-200 transition font-semibold">
+                                <i class="fas fa-sync-alt mr-1"></i>Atualizar Status
+                            </button>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
@@ -494,7 +497,7 @@ async function enviarZapSign(id) {
             });
             window.location.reload();
         } else {
-            throw new Exception(data.error || 'Erro ao enviar para ZapSign');
+            throw new Error(data.error || 'Erro ao enviar para ZapSign');
         }
     } catch (error) {
         console.error('Erro ZapSign:', error);
@@ -503,6 +506,48 @@ async function enviarZapSign(id) {
             text: error.message || 'Ocorreu um erro ao processar a assinatura digital.',
             icon: 'error'
         });
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
+async function verificarZapSign(id) {
+    const btn = document.getElementById('btn-verificar-zapsign');
+    const originalContent = btn.innerHTML;
+    
+    try {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Aguarde...';
+        
+        const response = await fetch(`../../api/contratos/verificar_zapsign.php?id=${id}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.signed) {
+                await Swal.fire({
+                    title: 'Assinado!',
+                    text: data.message,
+                    icon: 'success'
+                });
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: 'Aviso',
+                    text: data.message,
+                    icon: 'info'
+                });
+            }
+        } else {
+            throw new Error(data.error || 'Erro ao verificar status na ZapSign');
+        }
+    } catch (error) {
+        console.error('Erro ao verificar ZapSign:', error);
+        Swal.fire({
+            title: 'Erro!',
+            text: error.message,
+            icon: 'error'
+        });
+    } finally {
         btn.disabled = false;
         btn.innerHTML = originalContent;
     }
