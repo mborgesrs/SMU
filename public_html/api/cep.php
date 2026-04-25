@@ -28,8 +28,6 @@ $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $curlError = curl_error($ch);
 
-curl_close($ch);
-
 if ($httpCode !== 200) {
     // Fallback para ViaCEP
     $urlFallback = "https://viacep.com.br/ws/{$cep}/json/";
@@ -40,7 +38,6 @@ if ($httpCode !== 200) {
     curl_setopt($chF, CURLOPT_TIMEOUT, 10);
     $responseF = curl_exec($chF);
     $httpCodeF = curl_getinfo($chF, CURLINFO_HTTP_CODE);
-    curl_close($chF);
 
     if ($httpCodeF === 200) {
         $viaCepData = json_decode($responseF, true);
