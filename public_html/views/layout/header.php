@@ -180,7 +180,7 @@ $empresaLogo = !empty($empresaConfig['logotipo']) ? APP_URL . ltrim($empresaConf
             </a>
             
             <!-- Group: Cadastros -->
-            <div class="menu-group group-active" id="group-cadastros">
+            <div class="menu-group" id="group-cadastros">
                 <div class="group-header flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-100 transition" onclick="toggleGroup('group-cadastros')">
                     <div class="flex items-center space-x-3">
                         <div class="group-title-icon" style="background-color: color-mix(in srgb, var(--primary-color), white 90%); color: var(--primary-color);">
@@ -362,8 +362,6 @@ $empresaLogo = !empty($empresaConfig['logotipo']) ? APP_URL . ltrim($empresaConf
                     if (el) {
                         if (state === 'open') el.classList.add('group-active');
                         else if (state === 'closed') el.classList.remove('group-active');
-                        // Default open for Gestao if it's the first time
-                        else if (id === 'group-gestao' && !state) el.classList.add('group-active');
                     }
                 });
             });
