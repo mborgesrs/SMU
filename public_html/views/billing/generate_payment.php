@@ -26,7 +26,7 @@ try {
         try {
             $customer = $asaas->createCustomer($company);
             $customerId = $customer['id'];
-            
+
             $stmt = $db->prepare("UPDATE companies SET asaas_customer_id = ? WHERE id = ?");
             $stmt->execute([$customerId, $company['id']]);
             $company['asaas_customer_id'] = $customerId;
@@ -49,19 +49,19 @@ try {
         if (empty($company['asaas_subscription_id'])) {
             $amount = ($company['plan_price'] > 0) ? $company['plan_price'] : 79.00;
             $interval = $company['plan_interval'] ?: 'MONTHLY';
-            
+
             // Apply annual discount if selected (e.g., 20% off)
             if ($interval === 'YEARLY') {
                 $amount = ($amount * 12) * 0.80;
             }
 
             $subscription = $asaas->createSubscription($customerId, $amount, $interval);
-            
+
             $stmt = $db->prepare("UPDATE companies SET asaas_subscription_id = ? WHERE id = ?");
             $stmt->execute([$subscription['id'], $company['id']]);
             $company['asaas_subscription_id'] = $subscription['id'];
         }
-        
+
         // Find latest pending or overdue payment for the customer
         $paymentsData = $asaas->getCustomerPayments($customerId);
         if (!empty($paymentsData['data'])) {
