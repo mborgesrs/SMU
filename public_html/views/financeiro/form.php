@@ -166,11 +166,11 @@ require_once __DIR__ . '/../layout/header.php';
 
             <div class="md:col-span-4">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Valor Base *</label>
-                <?php $isLinked = !empty($item['nf_contrato']) || !empty($item['id_origem']); ?>
+                <?php $isLinked = !empty($item['id_origem']); ?>
                 <input type="number" name="valor" id="valor_base" step="0.01" required value="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
                     <?php echo $isLinked ? 'readonly class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium cursor-not-allowed"' : 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500"'; ?>>
                 <?php if ($isLinked): ?>
-                    <p class="text-xs text-amber-600 mt-1"><i class="fas fa-lock mr-1"></i>Bloqueado (Vinculado a Contrato)</p>
+                    <p class="text-xs text-amber-600 mt-1"><i class="fas fa-lock mr-1"></i>Bloqueado (Gerado pelo Sistema)</p>
                 <?php endif; ?>
             </div>
 

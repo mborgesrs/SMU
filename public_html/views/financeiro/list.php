@@ -82,7 +82,11 @@ $items = $model->getAll();
                             <?php
                             $situacao = $item['situacao'] ?? 'Aberto';
                             $liquidated_statuses = ['Liquidado', 'cRecebido', 'dPago'];
-                            $sit_color = in_array($situacao, $liquidated_statuses) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                            if ($situacao === 'Juros/Multa') {
+                                $sit_color = 'bg-purple-100 text-purple-800';
+                            } else {
+                                $sit_color = in_array($situacao, $liquidated_statuses) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                            }
                             ?>
                             <span class="px-2 py-1 text-xs rounded-full <?php echo $sit_color; ?>">
                                 <?php echo htmlspecialchars($situacao); ?>

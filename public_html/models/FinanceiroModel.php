@@ -75,15 +75,15 @@ class FinanceiroModel {
     }
 
     public function create($data) {
-        // Logic: Receber/Pagar defaults to Aberto, others (Entrada/Saida) are ALWAYS Liquidado
+        // Logic: Receber/Pagar defaults to Aberto, others (Entrada/Saida) are ALWAYS Liquidado by default
         if ($data['tipo'] === 'Receber' || $data['tipo'] === 'Pagar') {
             $situacao = $data['situacao'] ?? 'Aberto';
         } else {
-            $situacao = 'Liquidado';
+            $situacao = $data['situacao'] ?? 'Liquidado';
         }
 
-        // If liquidated, balance must be 0
-        $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
+        // If liquidated or Juros/Multa, balance must be 0
+        $saldo = ($situacao === 'Liquidado' || $situacao === 'Juros/Multa') ? 0 : ($data['saldo'] ?? $data['valor']);
 
         $sql = "INSERT INTO financeiro (company_id, data, id_cliente_forn, observacao, valor, tipo, id_portador, id_conta, id_tipopgto, saldo, situacao, dt_vencimento, id_origem, nf_contrato, perc_juros, valor_juros) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -115,15 +115,16 @@ class FinanceiroModel {
     }
 
     public function update($id, $data) {
-        // Logic: Receber/Pagar defaults to Aberto, others (Entrada/Saida) are ALWAYS Liquidado
+        // Logic: Receber/Pagar defaults to Aberto, others (Entrada/Saida) are ALWAYS Liquidado by default
         if ($data['tipo'] === 'Receber' || $data['tipo'] === 'Pagar') {
             $situacao = $data['situacao'] ?? 'Aberto';
         } else {
-            $situacao = 'Liquidado';
+            $situacao = $data['situacao'] ?? 'Liquidado';
         }
 
         // If liquidated, balance must be 0
-        $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
+        // If liquidated or Juros/Multa, balance must be 0
+        $saldo = ($situacao === 'Liquidado' || $situacao === 'Juros/Multa') ? 0 : ($data['saldo'] ?? $data['valor']);
 
         $sql = "UPDATE financeiro SET data = ?, id_cliente_forn = ?, observacao = ?, valor = ?, 
                 tipo = ?, id_portador = ?, id_conta = ?, id_tipopgto = ?, saldo = ?, situacao = ?, dt_vencimento = ?, id_origem = ?, nf_contrato = ?, perc_juros = ?, valor_juros = ? 
@@ -157,6 +158,31 @@ class FinanceiroModel {
     }
 
     public function delete($id) {
+        // Get the movement before deleting to check for links
+        $stmt = $this->db->prepare("SELECT * FROM financeiro WHERE id = ? AND company_id = ?");
+        $stmt->execute([$id, $this->company_id]);
+        $movement = $stmt->fetch();
+
+        if (!$movement) return false;
+
+        // If it's a liquidation entry (has id_origem and situacao is Liquidado)
+        if ($movement['id_origem'] && ($movement['situacao'] === 'Liquidado' || $movement['situacao'] === 'cRecebido' || $movement['situacao'] === 'dPago')) {
+            $origemId = $movement['id_origem'];
+            
+            // 1. Delete linked interest entry and capture its value to restore to original
+            $stmtGetJuros = $this->db->prepare("SELECT valor FROM financeiro WHERE id_origem = ? AND situacao = 'Juros/Multa' AND company_id = ?");
+            $stmtGetJuros->execute([$origemId, $this->company_id]);
+            $jurosEntry = $stmtGetJuros->fetch();
+            $jurosValor = $jurosEntry ? (float)$jurosEntry['valor'] : 0;
+
+            $stmtDelJuros = $this->db->prepare("DELETE FROM financeiro WHERE id_origem = ? AND situacao = 'Juros/Multa' AND company_id = ?");
+            $stmtDelJuros->execute([$origemId, $this->company_id]);
+
+            // 2. Restore balance and juros of the original entry
+            $stmtRestore = $this->db->prepare("UPDATE financeiro SET saldo = saldo + ?, valor_juros = valor_juros + ?, situacao = 'Aberto', tipo = CASE WHEN tipo = 'cRecebido' THEN 'Receber' WHEN tipo = 'dPago' THEN 'Pagar' ELSE tipo END WHERE id = ? AND company_id = ?");
+            $stmtRestore->execute([$movement['valor'], $jurosValor, $origemId, $this->company_id]);
+        }
+
         $stmt = $this->db->prepare("DELETE FROM financeiro WHERE id = ? AND company_id = ?");
         $result = $stmt->execute([$id, $this->company_id]);
         

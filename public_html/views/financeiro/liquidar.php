@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $novoSaldo = $saldoAtual - $valorLiquidado;
     
     // Create the liquidation entry (Entrada or Saida)
-    $tipoLiquidador = ($origem['tipo'] === 'Receber') ? 'Entrada' : 'Saida';
+    $tipoLiquidador = (in_array($origem['tipo'], ['Receber', 'Entrada', 'cRecebido'])) ? 'Entrada' : 'Saida';
     
     $dadosLiquidação = [
         'data' => $dataLiquidação,
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'id_portador' => $origem['id_portador'],
         'id_conta' => $_POST['id_conta'] ?? $origem['id_conta'],
         'id_tipopgto' => $_POST['id_tipopgto'] ?? $origem['id_tipopgto'],
-        'saldo' => 0, // Movements are always liquidated
+        'saldo' => 0,
         'situacao' => 'Liquidado',
         'dt_vencimento' => $origem['dt_vencimento'],
         'id_origem' => $origem['id'],
@@ -46,11 +46,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
     
     $model->create($dadosLiquidação);
+
+    // Create Interest Entry if applicable
+    $valorJuros = (float)($origem['valor_juros'] ?? 0);
+    if ($valorJuros > 0 && $valorLiquidado >= $saldoAtual) {
+        $dadosJuros = [
+            'data' => $dataLiquidação,
+            'id_cliente_forn' => $origem['id_cliente_forn'],
+            'observacao' => "Juros/Multa referente ao lançamento #" . $origem['id'],
+            'valor' => $valorJuros,
+            'tipo' => $tipoLiquidador,
+            'id_portador' => $origem['id_portador'],
+            'id_conta' => $_POST['id_conta'] ?? $origem['id_conta'],
+            'id_tipopgto' => $_POST['id_tipopgto'] ?? $origem['id_tipopgto'],
+            'saldo' => 0,
+            'situacao' => 'Juros/Multa',
+            'dt_vencimento' => $origem['dt_vencimento'],
+            'id_origem' => $origem['id'],
+            'nf_contrato' => $origem['nf_contrato'] ?? null
+        ];
+        $model->create($dadosJuros);
+    }
     
     // Update the original entry
     $origem['saldo'] = $novoSaldo;
     if ($novoSaldo <= 0) {
         $origem['saldo'] = 0;
+        $origem['valor_juros'] = 0; // Clear interest once it is converted to separate entry
         
         // Update type and status based on the rule
         if ($origem['tipo'] === 'Receber') {
@@ -100,6 +122,12 @@ require_once __DIR__ . '/../layout/header.php';
                 <p class="text-xs uppercase text-gray-500 font-semibold tracking-wider">Vencimento</p>
                 <p class="text-sm font-medium text-gray-900"><?php echo $origem['dt_vencimento'] ? date('d/m/Y', strtotime($origem['dt_vencimento'])) : '-'; ?></p>
             </div>
+            <?php if (($origem['valor_juros'] ?? 0) > 0): ?>
+            <div>
+                <p class="text-xs uppercase text-gray-500 font-semibold tracking-wider">Juros Acumulados</p>
+                <p class="text-sm font-bold text-red-600">R$ <?php echo number_format($origem['valor_juros'], 2, ',', '.'); ?></p>
+            </div>
+            <?php endif; ?>
         </div>
 
         <form method="POST" class="space-y-4">
@@ -111,13 +139,47 @@ require_once __DIR__ . '/../layout/header.php';
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor a Liquidar *</label>
-                    <input type="number" name="valor_liquidado" step="0.01" required 
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Valor Principal a Liquidar *</label>
+                    <input type="number" name="valor_liquidado" id="valor_liquidado" step="0.01" required 
                         max="<?php echo $origem['saldo'] ?? $origem['valor']; ?>"
                         value="<?php echo $origem['saldo'] ?? $origem['valor']; ?>"
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 font-bold">
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 font-bold text-lg">
+                    <p class="text-xs text-gray-500 mt-1">Este valor abaterá o saldo do título original.</p>
+                </div>
+            </div>
+
+            <?php if (($origem['valor_juros'] ?? 0) > 0): ?>
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-gray-600">Principal:</span>
+                        <span class="font-medium" id="display_principal">R$ <?php echo number_format($origem['saldo'] ?? $origem['valor'], 2, ',', '.'); ?></span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm mb-2">
+                        <span class="text-gray-600">Juros/Multa (Automático):</span>
+                        <span class="text-red-600 font-medium">R$ <?php echo number_format($origem['valor_juros'], 2, ',', '.'); ?></span>
+                    </div>
+                    <div class="border-t border-amber-200 pt-2 flex justify-between items-center">
+                        <span class="font-bold text-gray-800 text-base">Total da Operação:</span>
+                        <span class="font-bold text-slate-900 text-lg" id="display_total">R$ <?php echo number_format(($origem['saldo'] ?? $origem['valor']) + $origem['valor_juros'], 2, ',', '.'); ?></span>
+                    </div>
+                    <p class="text-[10px] text-amber-700 mt-2 italic text-center">Serão gerados dois registros de saída separados (Principal + Juros).</p>
                 </div>
 
+                <script>
+                    const principalInput = document.getElementById('valor_liquidado');
+                    const displayPrincipal = document.getElementById('display_principal');
+                    const displayTotal = document.getElementById('display_total');
+                    const valorJuros = <?php echo (float)$origem['valor_juros']; ?>;
+
+                    principalInput.addEventListener('input', function() {
+                        const val = parseFloat(this.value) || 0;
+                        displayPrincipal.textContent = 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                        displayTotal.textContent = 'R$ ' + (val + valorJuros).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+                    });
+                </script>
+            <?php endif; ?>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Pagamento</label>
                     <select name="id_tipopgto" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
