@@ -23,19 +23,20 @@ class PortadorModel {
     }
 
     public function create($data) {
-        $sql = "INSERT INTO portadores (company_id, nome, conta, agencia, numero) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO portadores (company_id, nome, conta, agencia, numero, perc_juros) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
             $this->company_id,
             $data['nome'],
             $data['conta'] ?? null,
             $data['agencia'] ?? null,
-            $data['numero'] ?? null
+            $data['numero'] ?? null,
+            $data['perc_juros'] ?? 0
         ]);
     }
 
     public function update($id, $data) {
-        $sql = "UPDATE portadores SET nome = ?, conta = ?, agencia = ?, numero = ? 
+        $sql = "UPDATE portadores SET nome = ?, conta = ?, agencia = ?, numero = ?, perc_juros = ? 
                 WHERE id = ? AND company_id = ?";
         $stmt = $this->db->prepare($sql);
         return $stmt->execute([
@@ -43,6 +44,7 @@ class PortadorModel {
             $data['conta'] ?? null,
             $data['agencia'] ?? null,
             $data['numero'] ?? null,
+            $data['perc_juros'] ?? 0,
             $id,
             $this->company_id
         ]);

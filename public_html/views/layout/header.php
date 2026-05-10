@@ -90,7 +90,30 @@ $empresaLogo = !empty($empresaConfig['logotipo']) ? APP_URL . ltrim($empresaConf
                     <h1 class="text-xl font-bold tracking-tight text-slate-800"><?php echo htmlspecialchars($empresaNome); ?></h1>
                 </div>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 md:space-x-4">
+                <!-- Notifications -->
+                <div class="relative" id="notification_center">
+                    <button id="notification_bell" class="p-2 rounded-lg text-slate-500 hover:bg-gray-100 transition-colors relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notification_count" class="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                    
+                    <!-- Dropdown -->
+                    <div id="notification_dropdown" class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 hidden z-[60]">
+                        <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                            <h3 class="font-bold text-gray-800">Notificações</h3>
+                            <button onclick="clearNotifications()" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Limpar Tudo</button>
+                        </div>
+                        <div id="notification_list" class="max-h-96 overflow-y-auto">
+                            <!-- Items will be injected here -->
+                            <div class="p-8 text-center text-gray-400">
+                                <i class="fas fa-bell-slash text-3xl mb-2 opacity-20"></i>
+                                <p class="text-sm">Nenhuma notificação nova</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <span class="hidden md:inline text-slate-500 font-medium">Olá, <span class="text-slate-800"><?php echo htmlspecialchars($_SESSION['username'] ?? 'Usuário'); ?></span></span>
                 <a href="<?php echo APP_URL; ?>logout.php" class="bg-gray-50 hover:bg-red-50 text-gray-600 hover:text-red-600 border border-gray-200 hover:border-red-200 px-4 py-2 rounded-lg transition-all duration-300 flex items-center text-sm font-semibold">
                     <i class="fas fa-sign-out-alt mr-2"></i>Sair
@@ -365,6 +388,89 @@ $empresaLogo = !empty($empresaConfig['logotipo']) ? APP_URL . ltrim($empresaConf
                     }
                 });
             });
+        </script>
+        
+        <script>
+            let activeNotificationHashes = [];
+
+            function fetchNotifications() {
+                fetch('<?php echo APP_URL; ?>api/notifications.php?action=get')
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            renderNotifications(result.data);
+                        }
+                    });
+            }
+
+            function renderNotifications(notifications) {
+                const countEl = document.getElementById('notification_count');
+                const listEl = document.getElementById('notification_list');
+                
+                activeNotificationHashes = notifications.map(n => n.hash);
+                
+                if (notifications.length > 0) {
+                    countEl.textContent = notifications.length;
+                    countEl.classList.remove('hidden');
+                    
+                    listEl.innerHTML = notifications.map(n => `
+                        <a href="${n.link}" class="block p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                            <div class="flex items-start space-x-3">
+                                <div class="mt-1">
+                                    <i class="fas ${n.tipo === 'aniversario' ? 'fa-birthday-cake text-pink-500' : (n.tipo === 'contrato' ? 'fa-file-contract text-amber-500' : 'fa-exclamation-circle text-red-500')} text-lg"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-gray-800">${n.titulo}</p>
+                                    <p class="text-xs text-gray-600 mt-0.5">${n.mensagem}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                } else {
+                    countEl.classList.add('hidden');
+                    listEl.innerHTML = `
+                        <div class="p-8 text-center text-gray-400">
+                            <i class="fas fa-bell-slash text-3xl mb-2 opacity-20"></i>
+                            <p class="text-sm">Nenhuma notificação nova</p>
+                        </div>
+                    `;
+                }
+            }
+
+            function clearNotifications() {
+                if (activeNotificationHashes.length === 0) return;
+
+                fetch('<?php echo APP_URL; ?>api/notifications.php?action=clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hashes: activeNotificationHashes })
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        renderNotifications([]);
+                        document.getElementById('notification_dropdown').classList.add('hidden');
+                    }
+                });
+            }
+
+            document.getElementById('notification_bell').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('notification_dropdown').classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                document.getElementById('notification_dropdown').classList.add('hidden');
+            });
+
+            document.getElementById('notification_dropdown').addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Initial fetch
+            fetchNotifications();
+            // Refresh every 5 minutes
+            setInterval(fetchNotifications, 300000);
         </script>
     </aside>
 

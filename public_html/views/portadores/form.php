@@ -36,22 +36,28 @@ require_once __DIR__ . '/../layout/header.php';
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="md:col-span-1">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Conta</label>
                 <input type="text" name="conta" value="<?php echo htmlspecialchars($item['conta'] ?? ''); ?>"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
             </div>
 
-            <div>
+            <div class="md:col-span-1">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Agência</label>
                 <input type="text" name="agencia" value="<?php echo htmlspecialchars($item['agencia'] ?? ''); ?>"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
             </div>
 
-            <div>
+            <div class="md:col-span-1">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Número</label>
                 <input type="text" name="numero" value="<?php echo htmlspecialchars($item['numero'] ?? ''); ?>"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+            </div>
+
+            <div class="md:col-span-1">
+                <label class="block text-sm font-medium text-gray-700 mb-2">% Juros (Mês)</label>
+                <input type="number" name="perc_juros" step="0.01" value="<?php echo htmlspecialchars($item['perc_juros'] ?? '0.00'); ?>"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
             </div>
         </div>

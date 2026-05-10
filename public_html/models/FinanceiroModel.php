@@ -85,8 +85,8 @@ class FinanceiroModel {
         // If liquidated, balance must be 0
         $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
 
-        $sql = "INSERT INTO financeiro (company_id, data, id_cliente_forn, observacao, valor, tipo, id_portador, id_conta, id_tipopgto, saldo, situacao, dt_vencimento, id_origem, nf_contrato) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO financeiro (company_id, data, id_cliente_forn, observacao, valor, tipo, id_portador, id_conta, id_tipopgto, saldo, situacao, dt_vencimento, id_origem, nf_contrato, perc_juros, valor_juros) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute([
             $this->company_id,
@@ -102,7 +102,9 @@ class FinanceiroModel {
             $situacao,
             $data['dt_vencimento'] ?? null,
             $data['id_origem'] ?? null,
-            $data['nf_contrato'] ?? null
+            $data['nf_contrato'] ?? null,
+            $data['perc_juros'] ?? 0,
+            $data['valor_juros'] ?? 0
         ]);
 
         if ($result) {
@@ -124,7 +126,7 @@ class FinanceiroModel {
         $saldo = ($situacao === 'Liquidado') ? 0 : ($data['saldo'] ?? $data['valor']);
 
         $sql = "UPDATE financeiro SET data = ?, id_cliente_forn = ?, observacao = ?, valor = ?, 
-                tipo = ?, id_portador = ?, id_conta = ?, id_tipopgto = ?, saldo = ?, situacao = ?, dt_vencimento = ?, id_origem = ?, nf_contrato = ? 
+                tipo = ?, id_portador = ?, id_conta = ?, id_tipopgto = ?, saldo = ?, situacao = ?, dt_vencimento = ?, id_origem = ?, nf_contrato = ?, perc_juros = ?, valor_juros = ? 
                 WHERE id = ? AND company_id = ?";
         $stmt = $this->db->prepare($sql);
         $result = $stmt->execute([
@@ -141,6 +143,8 @@ class FinanceiroModel {
             $data['dt_vencimento'] ?? null,
             $data['id_origem'] ?? null,
             $data['nf_contrato'] ?? null,
+            $data['perc_juros'] ?? 0,
+            $data['valor_juros'] ?? 0,
             $id,
             $this->company_id
         ]);

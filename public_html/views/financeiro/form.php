@@ -113,19 +113,82 @@ require_once __DIR__ . '/../layout/header.php';
             });
             </script>
 
-            <div class="md:col-span-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Valor Total *</label>
+            <div class="md:col-span-4">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Portador</label>
+                    <button type="button" onclick="openQuickCreate('../portadores/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Portador">
+                        <i class="fas fa-plus mr-1"></i> Novo
+                    </button>
+                </div>
+                <select name="id_portador" id="id_portador" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+                    <option value="">Selecione...</option>
+                    <?php foreach ($portadores as $portador): ?>
+                        <option value="<?php echo $portador['id']; ?>" <?php echo ($item['id_portador'] ?? '') == $portador['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($portador['nome']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="md:col-span-4">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Conta</label>
+                    <button type="button" onclick="openQuickCreate('../contas/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Nova Conta">
+                        <i class="fas fa-plus mr-1"></i> Novo
+                    </button>
+                </div>
+                <select name="id_conta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+                    <option value="">Selecione...</option>
+                    <?php foreach ($contas as $conta): ?>
+                        <option value="<?php echo $conta['id']; ?>" <?php echo ($item['id_conta'] ?? '') == $conta['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($conta['descricao']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="md:col-span-4">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="block text-sm font-medium text-gray-700">Tipo de Pagamento</label>
+                    <button type="button" onclick="openQuickCreate('../tipos_pagamento/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Tipo de PGTO">
+                        <i class="fas fa-plus mr-1"></i> Novo
+                    </button>
+                </div>
+                <select name="id_tipopgto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+                    <option value="">Selecione...</option>
+                    <?php foreach ($tiposPgto as $tipo): ?>
+                        <option value="<?php echo $tipo['id']; ?>" <?php echo ($item['id_tipopgto'] ?? '') == $tipo['id'] ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($tipo['descricao']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Valor Base *</label>
                 <?php $isLinked = !empty($item['nf_contrato']) || !empty($item['id_origem']); ?>
-                <input type="number" name="valor" step="0.01" required value="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
+                <input type="number" name="valor" id="valor_base" step="0.01" required value="<?php echo htmlspecialchars($item['valor'] ?? ''); ?>"
                     <?php echo $isLinked ? 'readonly class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-gray-500 font-medium cursor-not-allowed"' : 'class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500"'; ?>>
                 <?php if ($isLinked): ?>
                     <p class="text-xs text-amber-600 mt-1"><i class="fas fa-lock mr-1"></i>Bloqueado (Vinculado a Contrato)</p>
                 <?php endif; ?>
             </div>
 
-            <div class="md:col-span-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Saldo Restante</label>
-                <input type="text" readonly value="R$ <?php echo number_format($item['saldo'] ?? ($item['valor'] ?? 0), 2, ',', '.'); ?>"
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">% Juros</label>
+                <input type="number" name="perc_juros" id="perc_juros" step="0.01" value="<?php echo htmlspecialchars($item['perc_juros'] ?? '0.00'); ?>"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Valor Juros</label>
+                <input type="number" name="valor_juros" id="valor_juros" step="0.01" value="<?php echo htmlspecialchars($item['valor_juros'] ?? '0.00'); ?>"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
+            </div>
+
+            <div class="md:col-span-3">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Saldo / Total</label>
+                <input type="text" id="valor_total_display" readonly value="R$ <?php echo number_format(($item['valor'] ?? 0) + ($item['valor_juros'] ?? 0), 2, ',', '.'); ?>"
                     class="w-full px-4 py-2 border border-gray-200 bg-gray-50 rounded-lg text-blue-600 font-bold">
             </div>
 
@@ -173,56 +236,7 @@ require_once __DIR__ . '/../layout/header.php';
                 </script>
             </div>
 
-            <div class="md:col-span-4">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="block text-sm font-medium text-gray-700">Portador</label>
-                    <button type="button" onclick="openQuickCreate('../portadores/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Portador">
-                        <i class="fas fa-plus mr-1"></i> Novo
-                    </button>
-                </div>
-                <select name="id_portador" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
-                    <option value="">Selecione...</option>
-                    <?php foreach ($portadores as $portador): ?>
-                        <option value="<?php echo $portador['id']; ?>" <?php echo ($item['id_portador'] ?? '') == $portador['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($portador['nome']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
 
-            <div class="md:col-span-4">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="block text-sm font-medium text-gray-700">Conta</label>
-                    <button type="button" onclick="openQuickCreate('../contas/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Nova Conta">
-                        <i class="fas fa-plus mr-1"></i> Novo
-                    </button>
-                </div>
-                <select name="id_conta" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
-                    <option value="">Selecione...</option>
-                    <?php foreach ($contas as $conta): ?>
-                        <option value="<?php echo $conta['id']; ?>" <?php echo ($item['id_conta'] ?? '') == $conta['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($conta['descricao']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div class="md:col-span-4">
-                <div class="flex items-center justify-between mb-2">
-                    <label class="block text-sm font-medium text-gray-700">Tipo de Pagamento</label>
-                    <button type="button" onclick="openQuickCreate('../tipos_pagamento/form.php')" class="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded hover:bg-slate-200 transition flex items-center" title="Novo Tipo de PGTO">
-                        <i class="fas fa-plus mr-1"></i> Novo
-                    </button>
-                </div>
-                <select name="id_tipopgto" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500">
-                    <option value="">Selecione...</option>
-                    <?php foreach ($tiposPgto as $tipo): ?>
-                        <option value="<?php echo $tipo['id']; ?>" <?php echo ($item['id_tipopgto'] ?? '') == $tipo['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($tipo['descricao']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
         </div>
 
         <div>
@@ -324,6 +338,82 @@ function closeQuickCreate() {
         }
     });
 }
+
+// Interest Calculation Logic
+const idPortadorSelect = document.getElementById('id_portador');
+const percJurosInput = document.getElementById('perc_juros');
+const valorJurosInput = document.getElementById('valor_juros');
+const valorBaseInput = document.getElementById('valor_base');
+const dtVencimentoInput = document.getElementsByName('dt_vencimento')[0];
+const valorTotalDisplay = document.getElementById('valor_total_display');
+
+function calculateInterest() {
+    const valorBase = parseFloat(valorBaseInput.value) || 0;
+    const percJuros = parseFloat(percJurosInput.value) || 0;
+    const dtVencimento = dtVencimentoInput.value;
+    
+    if (!dtVencimento || percJuros <= 0 || valorBase <= 0) {
+        valorJurosInput.value = '0.00';
+        updateTotalDisplay();
+        return;
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const venc = new Date(dtVencimento);
+    venc.setHours(0,0,0,0);
+
+    const diffTime = today - venc;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays > 0) {
+        // (Value * Rate / 100 / 30) * Days
+        const interest = (valorBase * (percJuros / 100) / 30) * diffDays;
+        valorJurosInput.value = interest.toFixed(2);
+        
+        // Show notification if interest was calculated
+        const toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+        toast.fire({
+            icon: 'info',
+            title: `Juros calculados: R$ ${interest.toFixed(2).replace('.', ',')} (${diffDays} dias de atraso)`
+        });
+    } else {
+        valorJurosInput.value = '0.00';
+    }
+    updateTotalDisplay();
+}
+
+function updateTotalDisplay() {
+    const base = parseFloat(valorBaseInput.value) || 0;
+    const juros = parseFloat(valorJurosInput.value) || 0;
+    const total = base + juros;
+    valorTotalDisplay.value = 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+idPortadorSelect.addEventListener('change', function() {
+    const id = this.value;
+    if (!id) return;
+
+    fetch(`../../api/get_portador.php?id=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.perc_juros) {
+                percJurosInput.value = data.perc_juros;
+                calculateInterest();
+            }
+        });
+});
+
+[percJurosInput, valorBaseInput, dtVencimentoInput].forEach(el => {
+    el.addEventListener('change', calculateInterest);
+});
+valorJurosInput.addEventListener('input', updateTotalDisplay);
 </script>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>
