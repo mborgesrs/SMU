@@ -125,8 +125,8 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
 
             <!-- PF Specific Fields -->
-            <div id="pf_fields" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 <?php echo ($cliente['tipo_pessoa'] ?? 'Fisica') === 'Juridica' ? 'hidden' : ''; ?>">
-                <div>
+            <div id="pf_fields" class="grid grid-cols-1 md:grid-cols-12 gap-4 mt-4 <?php echo ($cliente['tipo_pessoa'] ?? 'Fisica') === 'Juridica' ? 'hidden' : ''; ?>">
+                <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Estado Civil</label>
                     <select name="estado_civil" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 transition-all outline-none">
                         <option value="">Selecione...</option>
@@ -141,7 +141,7 @@ require_once __DIR__ . '/../layout/header.php';
                     </select>
                 </div>
 
-                <div>
+                <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">RG</label>
                     <input type="text" name="rg"
                         value="<?php echo htmlspecialchars($cliente['rg'] ?? ''); ?>"
@@ -149,14 +149,14 @@ require_once __DIR__ . '/../layout/header.php';
                         placeholder="00.000.000-0">
                 </div>
 
-                <div>
+                <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
                     <input type="date" name="dt_nascto"
                         value="<?php echo htmlspecialchars($cliente['dt_nascto'] ?? ''); ?>"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 transition-all outline-none">
                 </div>
 
-                <div>
+                <div class="md:col-span-3">
                     <label class="block text-sm font-medium text-gray-700 mb-1">NIT / PIS / PASEP</label>
                     <input type="text" name="nit_pis_pasep"
                         value="<?php echo htmlspecialchars($cliente['nit_pis_pasep'] ?? ''); ?>"
@@ -164,23 +164,23 @@ require_once __DIR__ . '/../layout/header.php';
                         placeholder="000.00000.00-0">
                 </div>
 
-                <div>
+                <div class="md:col-span-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Naturalidade</label>
                     <input type="text" name="naturalidade"
                         value="<?php echo htmlspecialchars($cliente['naturalidade'] ?? ''); ?>"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 transition-all outline-none">
                 </div>
 
-                <div>
+                <div class="md:col-span-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nome do Pai</label>
-                    <input type="text" name="nome_pai"
+                    <input type="text" name="nome_pai" maxlength="40"
                         value="<?php echo htmlspecialchars($cliente['nome_pai'] ?? ''); ?>"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 transition-all outline-none">
                 </div>
 
-                <div>
+                <div class="md:col-span-4">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Nome da Mãe</label>
-                    <input type="text" name="nome_mae"
+                    <input type="text" name="nome_mae" maxlength="40"
                         value="<?php echo htmlspecialchars($cliente['nome_mae'] ?? ''); ?>"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 transition-all outline-none">
                 </div>

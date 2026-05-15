@@ -47,7 +47,7 @@ if (!function_exists('checkBilling')) {
 
             if (!$company) return true;
 
-            if ($company['status'] === 'inactive' || $company['billing_status'] === 'blocked') {
+            if ($company['status'] === 'inactive' || $company['billing_status'] === 'blocked' || $company['billing_status'] === 'overdue') {
                 $depth = 0;
                 $phpSelf = $_SERVER['PHP_SELF'] ?? '';
                 if (strpos($phpSelf, 'views/') !== false) $depth = 1;
