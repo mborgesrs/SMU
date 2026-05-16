@@ -44,6 +44,7 @@ $items = $model->getAll();
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data Lanç.</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vencimento</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cliente/Fornecedor</th>
@@ -58,6 +59,7 @@ $items = $model->getAll();
             <tbody class="bg-white divide-y divide-gray-200">
                 <?php foreach ($items as $item): ?>
                     <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 text-sm text-gray-900">#<?php echo htmlspecialchars($item['id']); ?></td>
                         <td class="px-6 py-4 text-sm text-gray-900"><?php echo date('d/m/Y', strtotime($item['data'])); ?></td>
                         <td class="px-6 py-4 text-sm text-gray-900"><?php echo $item['dt_vencimento'] ? date('d/m/Y', strtotime($item['dt_vencimento'])) : '-'; ?></td>
                         <td class="px-6 py-4 text-sm text-gray-500"><?php echo htmlspecialchars($item['cliente_nome'] ?? '-'); ?></td>

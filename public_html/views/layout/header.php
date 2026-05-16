@@ -361,11 +361,13 @@ $empresaLogo = !empty($empresaConfig['logotipo']) ? APP_URL . ltrim($empresaConf
                 const group = document.getElementById(groupId);
                 const isActive = group.classList.contains('group-active');
                 
-                // Close other groups optionally, but user might want multiple open
-                // For a true accordion, uncomment the next lines:
-                // document.querySelectorAll('.menu-group').forEach(g => {
-                //    if(g.id !== groupId) g.classList.remove('group-active');
-                // });
+                // Close other groups for a true accordion
+                document.querySelectorAll('.menu-group').forEach(g => {
+                   if(g.id !== groupId) {
+                       g.classList.remove('group-active');
+                       localStorage.setItem(g.id, 'closed');
+                   }
+                });
 
                 if (isActive) {
                     group.classList.remove('group-active');
